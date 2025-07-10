@@ -4,7 +4,7 @@ local Tabs = {}
 local Sections = {}
 local plr = game.Players.LocalPlayer
 
--- 🔥 Inicia tudo automaticamente
+-- 🔥 Inicia e cria Tabs padrão
 function HypeXLib:Init()
     local win = Library.CreateLib("HypeX Revamp", "DarkTheme")
 
@@ -16,6 +16,7 @@ function HypeXLib:Init()
     Tabs["Admin"] = win:NewTab("Admin Menu🛠️")
     Tabs["MenuTotal"] = win:NewTab("「 ✦ MENU TOTAL ✦ 」")
 
+    -- Seções padrão
     Sections["Autofarm"] = Tabs["Main"]:NewSection("⚔️ Autofarm")
     Sections["Fruits"] = Tabs["Fruits"]:NewSection("🍎 Frutas")
     Sections["Swords"] = Tabs["Swords"]:NewSection("🗡️ Espadas")
@@ -25,18 +26,23 @@ function HypeXLib:Init()
     Sections["MenuTotal"] = Tabs["MenuTotal"]:NewSection("🚀 Total Access")
 end
 
--- ✅ AutoFarm com botão toggle
-function HypeXLib:CreateAutoFarm(name, path, enemy)
-    Sections["Autofarm"]:NewButton(name, "Farm NPCs", function()
-        -- mesmo código da versão anterior, omitido por espaço
+-- ✅ AutoFarm com seção
+function HypeXLib:CreateAutoFarm(name, path, enemy, section)
+    local sec = Sections[section]
+    if not sec then warn("Seção inválida:", section) return end
+
+    sec:NewButton(name, "Farm NPCs", function()
         print("Iniciando autofarm:", name)
-        -- Código simplificado aqui: ...
+        -- código omitido por espaço
     end)
 end
 
--- 🧠 Tool com GUI
-function HypeXLib:CreateToolButton(name, toolName, guiName)
-    Sections["Swords"]:NewButton(name, "Equipe tool e ativa GUI", function()
+-- 🧠 Tool com GUI por seção
+function HypeXLib:CreateToolButton(name, toolName, guiName, section)
+    local sec = Sections[section]
+    if not sec then warn("Seção inválida:", section) return end
+
+    sec:NewButton(name, "Equipe tool e ativa GUI", function()
         local tool = game.ReplicatedStorage:FindFirstChild(toolName)
         if tool then
             local clone = tool:Clone()
@@ -53,9 +59,12 @@ function HypeXLib:CreateToolButton(name, toolName, guiName)
     end)
 end
 
--- 🔥 Botão de RemoteEvent
-function HypeXLib:CreateSkillButton(name, remotePath)
-    Sections["Skills"]:NewButton(name, "Ativa skill", function()
+-- 🔥 RemoteEvent por seção
+function HypeXLib:CreateSkillButton(name, remotePath, section)
+    local sec = Sections[section]
+    if not sec then warn("Seção inválida:", section) return end
+
+    sec:NewButton(name, "Ativa skill", function()
         local parts = string.split(remotePath, ".")
         local remote = plr
         for _, p in ipairs(parts) do
@@ -66,9 +75,12 @@ function HypeXLib:CreateSkillButton(name, remotePath)
     end)
 end
 
--- 🧩 Toggle de GUI como portal/gojo
-function HypeXLib:CreateGuiToggle(name, guiPath, insidePath)
-    Sections["Skills"]:NewToggle(name, "Toggle GUI", function(state)
+-- 👁️ GUI Toggle por seção
+function HypeXLib:CreateGuiToggle(name, guiPath, section, insidePath)
+    local sec = Sections[section]
+    if not sec then warn("Seção inválida:", section) return end
+
+    sec:NewToggle(name, "Toggle GUI", function(state)
         local parts = string.split(guiPath, ".")
         local gui = plr
         for _, p in ipairs(parts) do
