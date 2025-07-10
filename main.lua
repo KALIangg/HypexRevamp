@@ -80,29 +80,44 @@ function HypeXLib:CreateSkillButton(name, remotePath, section)
 end
 
 -- 👁️ GUI Toggle por seção
-function HypeXLib:CreateGuiToggle(name, guiPath, section, insidePath)
+function HypeXLib:CreateGuiToggle(name, guiPath, section, framePath)
     local sec = Sections[section]
     if not sec then warn("Seção inválida:", section) return end
 
     sec:NewToggle(name, "Toggle GUI", function(state)
-        local parts = string.split(guiPath, ".")
+        local plr = game.Players.LocalPlayer
+        local guiParts = string.split(guiPath, ".")
         local gui = plr
-        for _, p in ipairs(parts) do
+
+        for _, p in ipairs(guiParts) do
             gui = gui:FindFirstChild(p)
-            if not gui then return warn("GUI inválida:", guiPath) end
+            if not gui then warn("GUI inválida:", guiPath) return end
         end
 
-        gui.Enabled = state
-        if insidePath then
-            local inside = gui
-            for _, p in ipairs(string.split(insidePath, ".")) do
-                inside = inside:FindFirstChild(p)
+        -- 🔁 Ativa GUI principal se existir Enabled
+        if gui:IsA("ScreenGui") or gui:IsA("BillboardGui") then
+            if gui:FindFirstChildOfClass("Frame") then
+                gui.Enabled = state
             end
-            if inside then
-                inside.Visible = state
+        elseif gui:IsA("Frame") then
+            gui.Visible = state
+        end
+
+        -- 🔁 Se passar um frame específico, ativa ele também
+        if framePath then
+            local frame = gui
+            for _, p in ipairs(string.split(framePath, ".")) do
+                frame = frame:FindFirstChild(p)
+                if not frame then warn("Frame inválido:", framePath) return end
+            end
+            if frame:IsA("Frame") or frame:IsA("TextLabel") then
+                frame.Visible = state
+            elseif frame:IsA("ScreenGui") then
+                frame.Enabled = state
             end
         end
     end)
 end
+
 
 return HypeXLib
