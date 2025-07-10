@@ -19,8 +19,9 @@ function HypeXLib:Init()
 
     -- Seções padrão
     Sections["Autofarm"] = Tabs["Main"]:NewSection("⚔️ Autofarm")
-    Sections["Fruits"] = Tabs["Fruits"]:NewSection("🍎 Frutas")
-    Sections["Swords"] = Tabs["Swords"]:NewSection("🗡️ Espadas")
+    Sections["Fruits"] = Tabs["🍎 Fruits"]:NewSection("🍎 Frutas")
+    Sections["Swords"] = Tabs["🗡️ Swords"]:NewSection("🗡️ Espadas")
+    Sections["Swords"] = Tabs["🗡️ Gui Swords"]:NewSection("🗡️ Espadas")
     Sections["Skills"] = Tabs["Skills"]:NewSection("⚡ Habilidades / Transformações")
     Sections["Settings"] = Tabs["Settings"]:NewSection("⚙️ Configs")
     Sections["Admin"] = Tabs["Admin"]:NewSection("🛠️ Admin Tools")
