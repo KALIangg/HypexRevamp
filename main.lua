@@ -119,5 +119,13 @@ function HypeXLib:CreateGuiToggle(name, guiPath, section, framePath)
     end)
 end
 
+function HypeXLib:CreateCustomButton(name, section, callback)
+    local sec = Sections[section]
+    if not sec then warn("Seção inválida:", section) return end
+
+    sec:NewButton(name, "Botão customizado", callback)
+end
+
+
 
 return HypeXLib
