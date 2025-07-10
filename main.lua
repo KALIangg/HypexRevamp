@@ -126,6 +126,16 @@ function HypeXLib:CreateCustomButton(name, section, callback)
     sec:NewButton(name, "Botão customizado", callback)
 end
 
+function HypeXLib:CreateCustomToggle(name, section, callback)
+    local sec = Sections[section]
+    if not sec then warn("Seção inválida:", section) return end
+
+    sec:NewToggle(name, "Toggle customizado", function(state)
+        callback(state)
+    end)
+end
+
+
 
 
 return HypeXLib
