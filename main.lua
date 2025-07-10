@@ -8,25 +8,27 @@ local plr = game.Players.LocalPlayer
 function HypeXLib:Init()
     local win = Library.CreateLib("HypeX Revamp", "DarkTheme")
 
+    -- Tabs (sem emojis nos índices)
     Tabs["Main"] = win:NewTab("Main")
     Tabs["Fruits"] = win:NewTab("🍎 Fruits")
     Tabs["Swords"] = win:NewTab("🗡️ Swords")
-    Tabs["Swords"] = win:NewTab("🗡️ Gui Swords")
-    Tabs["Skills"] = win:NewTab("Skills")
+    Tabs["GuiSwords"] = win:NewTab("🗡️ Gui Swords")
+    Tabs["Skills"] = win:NewTab("⚡ Skills")
     Tabs["Settings"] = win:NewTab("⚙️ Configs")
     Tabs["Admin"] = win:NewTab("🛠️ Admin Menu")
     Tabs["MenuTotal"] = win:NewTab("「 ✦ MENU TOTAL ✦ 」")
 
-    -- Seções padrão
+    -- Sections (sem emojis nos índices, mas com emojis no nome exibido)
     Sections["Autofarm"] = Tabs["Main"]:NewSection("⚔️ Autofarm")
-    Sections["Fruits"] = Tabs["🍎 Fruits"]:NewSection("🍎 Frutas")
-    Sections["Swords"] = Tabs["🗡️ Swords"]:NewSection("🗡️ Espadas")
-    Sections["Swords"] = Tabs["🗡️ Gui Swords"]:NewSection("🗡️ Espadas")
+    Sections["Fruits"] = Tabs["Fruits"]:NewSection("🍎 Frutas")
+    Sections["Swords"] = Tabs["Swords"]:NewSection("🗡️ Espadas")
+    Sections["GuiSwords"] = Tabs["GuiSwords"]:NewSection("🗡️ Espadas com GUI")
     Sections["Skills"] = Tabs["Skills"]:NewSection("⚡ Habilidades / Transformações")
-    Sections["Settings"] = Tabs["Settings"]:NewSection("⚙️ Configs")
+    Sections["Settings"] = Tabs["Settings"]:NewSection("⚙️ Configurações")
     Sections["Admin"] = Tabs["Admin"]:NewSection("🛠️ Admin Tools")
     Sections["MenuTotal"] = Tabs["MenuTotal"]:NewSection("🚀 Total Access")
 end
+
 
 -- ✅ AutoFarm com seção
 function HypeXLib:CreateAutoFarm(name, path, enemy, section)
