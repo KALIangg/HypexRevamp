@@ -147,58 +147,70 @@ end
 
 
 function HypeXLib:CreateServerPanel()
-    local sec = Sections["ServerPanelList"]
-    if not sec then warn("❌ Seção não encontrada.") return end
+    local section = Sections["ServerPanel"]
+    if not section then warn("❌ Seção não existe.") return end
 
-    -- Se já existe uma GUI de lista, destrói só ela
-    if self.ServerPlayersFrame and self.ServerPlayersFrame.Destroy then
-        self.ServerPlayersFrame:Destroy()
+    -- Cria cache se não existir
+    if not self.ServerPanelPlayers then
+        self.ServerPanelPlayers = {}
+    else
+        -- Limpa só o que foi criado pelo painel
+        for _, ui in pairs(self.ServerPanelPlayers) do
+            if typeof(ui) == "table" and ui.Destroy then
+                pcall(function() ui:Destroy() end)
+            end
+        end
+        self.ServerPanelPlayers = {}
     end
 
-    -- Cria container isolado pra lista
-    local container = Instance.new("Frame")
-    container.Name = "ServerPlayersList"
-    container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, 0, 0, 0)
-    container.AutomaticSize = Enum.AutomaticSize.Y
-    container.Parent = sec.Container
-
-    self.ServerPlayersFrame = container
-
     local plr = game.Players.LocalPlayer
-    local UIList = Instance.new("UIListLayout")
-    UIList.SortOrder = Enum.SortOrder.LayoutOrder
-    UIList.Padding = UDim.new(0, 5)
-    UIList.Parent = container
 
     for _, target in ipairs(game.Players:GetPlayers()) do
         if target ~= plr then
-            local lbl = Instance.new("TextLabel", container)
-            lbl.Size = UDim2.new(1, 0, 0, 20)
-            lbl.BackgroundTransparency = 1
-            lbl.Text = "👤 "..target.Name
-            lbl.TextColor3 = Color3.new(1,1,1)
-            lbl.Font = Enum.Font.SourceSans
-            lbl.TextSize = 18
+            local lbl = section:NewLabel("👤 "..target.Name)
 
-            local btn = Instance.new("TextButton", container)
-            btn.Size = UDim2.new(1, 0, 0, 20)
-            btn.Text = "📍 Ir até "..target.Name
-            btn.TextColor3 = Color3.new(1, 1, 1)
-            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-            btn.Font = Enum.Font.SourceSans
-            btn.TextSize = 16
-            btn.MouseButton1Click:Connect(function()
-                local char = plr.Character or plr.CharacterAdded:Wait()
-                local hrp = char:FindFirstChild("HumanoidRootPart")
+            local btn1 = section:NewButton("👁️ Spectate "..target.Name, "", function()
+                workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
+            end)
+
+            local btn2 = section:NewButton("📍 Ir até "..target.Name, "", function()
+                local myChar = plr.Character or plr.CharacterAdded:Wait()
+                local myHRP = myChar:FindFirstChild("HumanoidRootPart")
                 local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-                if hrp and targetHRP then
-                    hrp.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
+
+                if myHRP and targetHRP then
+                    myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
                 end
             end)
+
+            local btn3 = section:NewButton("💥 Crashar "..target.Name, "", function()
+                local remote = plr.PlayerGui:FindFirstChild("spirit3")
+                    and plr.PlayerGui.spirit3:FindFirstChild("Frame")
+                    and plr.PlayerGui.spirit3.Frame:FindFirstChild("sun")
+                    and plr.PlayerGui.spirit3.Frame.sun:FindFirstChild("RemoteEvent")
+
+                if remote then
+                    task.spawn(function()
+                        for i = 1, 300 do
+                            remote:FireServer()
+                            task.wait(0.01)
+                        end
+                    end)
+                end
+            end)
+
+            local divider = section:NewDivider()
+
+            -- Armazena os objetos pra limpar depois
+            table.insert(self.ServerPanelPlayers, lbl)
+            table.insert(self.ServerPanelPlayers, btn1)
+            table.insert(self.ServerPanelPlayers, btn2)
+            table.insert(self.ServerPanelPlayers, btn3)
+            table.insert(self.ServerPanelPlayers, divider)
         end
     end
 end
+
 
 
 
