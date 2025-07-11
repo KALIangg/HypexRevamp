@@ -119,6 +119,52 @@ function HypeXLib:CreateGuiToggle(name, guiPath, section, framePath)
     end)
 end
 
+
+
+
+
+
+function HypeXLib:CreateTeleportPartButton(buttonName, partPath, section, yOffset)
+    local sec = Sections[section]
+    if not sec then
+        warn("❌ Seção inválida:", section)
+        return
+    end
+
+    sec:NewButton(buttonName, "Teleporta até a Part (DEX style)", function()
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+
+        local pathParts = string.split(partPath, ".")
+        local part = game
+
+        for _, p in ipairs(pathParts) do
+            part = part:FindFirstChild(p)
+            if not part then
+                warn("❌ Part não encontrada:", partPath)
+                return
+            end
+        end
+
+        if not part:IsA("BasePart") then
+            warn("❌ Objeto destino não é uma Part:", part:GetFullName())
+            return
+        end
+
+        local offset = yOffset or 5
+        hrp.CFrame = part.CFrame + Vector3.new(0, offset, 0)
+    end)
+end
+
+
+
+
+
+
+
+
+
 function HypeXLib:CreateCustomButton(name, section, callback)
     local sec = Sections[section]
     if not sec then warn("Seção inválida:", section) return end
