@@ -142,7 +142,6 @@ end
 
 
 
-
 function HypeXLib:CreateStandaloneServerPanel()
     -- Cria nova janela separada
     local window = Library.CreateLib("📡 Painel Server (HypeX)", "DarkTheme")
@@ -221,7 +220,10 @@ end
 
 
 
-
+local sectotal = Sections[MenuTotal]
+sectotal:NewButton("Painel Server - ADM", "Painel Customizado Servidor", function()
+    CreateStandaloneServerPanel()
+end)
 
 
 
