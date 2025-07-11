@@ -44,24 +44,42 @@ end
 -- 🧠 Tool com GUI por seção
 function HypeXLib:CreateToolButton(name, toolName, guiName, section)
     local sec = Sections[section]
-    if not sec then warn("Seção inválida:", section) return end
+    if not sec then
+        warn("Seção inválida:", section)
+        return
+    end
 
-    sec:NewButton(name, "Equipe tool e ativa GUI", function()
-        local tool = game.ReplicatedStorage:FindFirstChild(toolName)
+    sec:NewButton(name, "Equipe Tool e ativa GUI", function()
+        local rs = game:GetService("ReplicatedStorage")
+        local tool = nil
+
+        -- 💡 Procura só entre TOOLS!
+        for _, item in ipairs(rs:GetChildren()) do
+            if item:IsA("Tool") and item.Name == toolName then
+                tool = item
+                break
+            end
+        end
+
         if tool then
             local clone = tool:Clone()
             clone.Parent = plr.Backpack
+
             clone.Equipped:Connect(function()
-                plr.PlayerGui[guiName].Enabled = true
+                local gui = plr.PlayerGui:FindFirstChild(guiName)
+                if gui then gui.Enabled = true end
             end)
+
             clone.Unequipped:Connect(function()
-                plr.PlayerGui[guiName].Enabled = false
+                local gui = plr.PlayerGui:FindFirstChild(guiName)
+                if gui then gui.Enabled = false end
             end)
         else
-            warn("Tool não encontrada:", toolName)
+            warn("❌ Tool '"..toolName.."' não encontrada em ReplicatedStorage (ou não é Tool)")
         end
     end)
 end
+
 
 -- 🔥 RemoteEvent por seção
 function HypeXLib:CreateSkillButton(name, remotePath, section)
