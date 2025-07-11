@@ -146,70 +146,82 @@ end
 
 
 
-function HypeXLib:CreateServerPanel()
-    local section = Sections["ServerPanel"]
-    if not section then
-        warn("❌ Seção Painel Server não encontrada.")
-        return
-    end
-
-    -- Cria cache se não existir
-    if not self.ServerPanelPlayers then
-        self.ServerPanelPlayers = {}
-    else
-        -- Limpa só o que foi criado pelo painel
-        for _, ui in pairs(self.ServerPanelPlayers) do
-            if typeof(ui) == "table" and ui.Destroy then
-                pcall(function() ui:Destroy() end)
-            end
-        end
-        self.ServerPanelPlayers = {}
-    end
+function HypeXLib:CreateStandaloneServerPanel()
+    -- Cria nova janela separada
+    local window = Library.CreateLib("📡 Painel Server (HypeX)", "DarkTheme")
+    local panelTab = window:NewTab("Jogadores Online")
+    local section = panelTab:NewSection("📋 Players")
 
     local plr = game.Players.LocalPlayer
 
-    for _, target in ipairs(game.Players:GetPlayers()) do
-        if target ~= plr then
-            local lbl = section:NewLabel("👤 "..target.Name)
-
-            local btn1 = section:NewButton("👁️ Spectate "..target.Name, "", function()
-                workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
-            end)
-
-            local btn2 = section:NewButton("📍 Ir até "..target.Name, "", function()
-                local myChar = plr.Character or plr.CharacterAdded:Wait()
-                local myHRP = myChar:FindFirstChild("HumanoidRootPart")
-                local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-
-                if myHRP and targetHRP then
-                    myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
+    local function populate()
+        -- limpa se já tiver
+        if self.ServerPanelPlayers then
+            for _, v in pairs(self.ServerPanelPlayers) do
+                if typeof(v) == "table" and v.Destroy then
+                    pcall(function() v:Destroy() end)
                 end
-            end)
+            end
+        end
+        self.ServerPanelPlayers = {}
 
-            local btn3 = section:NewButton("💥 Crashar "..target.Name, "", function()
-                local remote = plr.PlayerGui:FindFirstChild("spirit3")
-                    and plr.PlayerGui.spirit3:FindFirstChild("Frame")
-                    and plr.PlayerGui.spirit3.Frame:FindFirstChild("sun")
-                    and plr.PlayerGui.spirit3.Frame.sun:FindFirstChild("RemoteEvent")
+        for _, target in ipairs(game.Players:GetPlayers()) do
+            if target ~= plr then
+                local lbl = section:NewLabel("👤 "..target.Name)
 
-                if remote then
-                    task.spawn(function()
-                        for i = 1, 300 do
-                            remote:FireServer()
-                            task.wait(0.01)
-                        end
-                    end)
-                end
-            end)
+                local spectateBtn = section:NewButton("👁️ Spectate "..target.Name, "", function()
+                    workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
+                end)
 
-            -- Salva pra limpeza futura
-            table.insert(self.ServerPanelPlayers, lbl)
-            table.insert(self.ServerPanelPlayers, btn1)
-            table.insert(self.ServerPanelPlayers, btn2)
-            table.insert(self.ServerPanelPlayers, btn3)
+                local tpBtn = section:NewButton("📍 Ir até "..target.Name, "", function()
+                    local myChar = plr.Character or plr.CharacterAdded:Wait()
+                    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+                    local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+
+                    if myHRP and targetHRP then
+                        myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
+                    end
+                end)
+
+                local crashBtn = section:NewButton("💥 Crashar "..target.Name, "", function()
+                    local remote = plr.PlayerGui:FindFirstChild("spirit3")
+                        and plr.PlayerGui.spirit3:FindFirstChild("Frame")
+                        and plr.PlayerGui.spirit3.Frame:FindFirstChild("sun")
+                        and plr.PlayerGui.spirit3.Frame.sun:FindFirstChild("RemoteEvent")
+
+                    if remote then
+                        task.spawn(function()
+                            for i = 1, 300 do
+                                remote:FireServer()
+                                task.wait(0.01)
+                            end
+                        end)
+                    end
+                end)
+
+                -- Salva pra limpar
+                table.insert(self.ServerPanelPlayers, lbl)
+                table.insert(self.ServerPanelPlayers, spectateBtn)
+                table.insert(self.ServerPanelPlayers, tpBtn)
+                table.insert(self.ServerPanelPlayers, crashBtn)
+            end
         end
     end
+
+    populate()
+
+    -- Atualização automática
+    game.Players.PlayerAdded:Connect(function()
+        task.wait(0.3)
+        populate()
+    end)
+
+    game.Players.PlayerRemoving:Connect(function()
+        task.wait(0.3)
+        populate()
+    end)
 end
+
 
 
 
