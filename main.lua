@@ -220,8 +220,8 @@ end
 
 
 
-local sectotal = Sections[MenuTotal]
-sectotal:NewButton("Menu Total", "ButtonInfo", function()
+
+MenuTotal:NewButton("Menu Total", "ButtonInfo", function()
     CreateStandaloneServerPanel()
 end)
 
