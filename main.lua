@@ -150,12 +150,12 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
         return
     end
 
-    sec:NewButton(name, "Teleporta até a Part ou Model (REAL DEX MODE)", function()
+    sec:NewButton(name, "TP (com espera de streaming)", function()
         task.spawn(function()
             local parts = string.split(partPath, ".")
             local root
 
-            -- 🔍 Detecta caminho raiz
+            -- Suporte para caminhos especiais
             local first = parts[1]:lower()
             if first == "workspace" then
                 root = workspace
@@ -163,10 +163,6 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
                 root = game:GetService("ReplicatedStorage")
             elseif first == "players" then
                 root = game:GetService("Players")
-            elseif first == "lighting" then
-                root = game:GetService("Lighting")
-            elseif first == "startergui" then
-                root = game:GetService("StarterGui")
             elseif first == "playergui" then
                 root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
             else
@@ -177,7 +173,7 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
                 table.remove(parts, 1)
             end
 
-            -- Caminho até o objeto final
+            -- Caminho até o alvo
             local current = root
             for _, p in ipairs(parts) do
                 current = current:FindFirstChild(p)
@@ -187,44 +183,52 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
                 end
             end
 
-            local targetCFrame
+            -- Se for Model, forçamos a streamar e esperar part aparecer
+            local targetPart = nil
+            local camera = workspace.CurrentCamera
 
             if current:IsA("BasePart") then
-                targetCFrame = current.CFrame
+                targetPart = current
 
             elseif current:IsA("Model") then
-                -- 🔍 Busca PrimaryPart ou HumanoidRootPart ou primeira BasePart
-                local base = current.PrimaryPart
-                    or current:FindFirstChild("HumanoidRootPart")
-                    or current:FindFirstChildWhichIsA("BasePart", true) -- busca profundo
+                -- Força a câmera a ir pro centro do model
+                camera.CFrame = current:GetBoundingBox()
 
-                if not base then
-                    warn("❌ Model não contém nenhuma BasePart:", current:GetFullName())
+                -- Aguarda alguma part válida aparecer no model
+                for i = 1, 60 do
+                    targetPart = current.PrimaryPart
+                        or current:FindFirstChild("HumanoidRootPart")
+                        or current:FindFirstChildWhichIsA("BasePart", true)
+
+                    if targetPart then break end
+                    task.wait(0.2)
+                end
+
+                if not targetPart then
+                    warn("❌ Nenhuma BasePart encontrada no model após aguardar o streaming:", current:GetFullName())
                     return
                 end
 
-                targetCFrame = base.CFrame
-
             else
-                warn("❌ Objeto final não é uma Part nem Model:", current:GetFullName())
+                warn("❌ Objeto final não é Model nem Part:", current:GetFullName())
                 return
             end
 
-            -- 🔁 Força região carregar se StreamingEnabled
-            workspace.CurrentCamera.CFrame = targetCFrame
-            task.wait(0.3)
+            -- Espera 1 frame só pra garantir
+            task.wait(0.1)
 
-            local plr = game.Players.LocalPlayer
-            local char = plr.Character or plr.CharacterAdded:Wait()
+            local player = game.Players.LocalPlayer
+            local char = player.Character or player.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
 
             local offset = yOffset or 5
-            hrp.CFrame = targetCFrame + Vector3.new(0, offset, 0)
+            hrp.CFrame = targetPart.CFrame + Vector3.new(0, offset, 0)
 
-            print("✅ Teleportado com sucesso para:", current:GetFullName())
+            print("✅ Teleportado com sucesso para:", targetPart:GetFullName())
         end)
     end)
 end
+
 
 
 
