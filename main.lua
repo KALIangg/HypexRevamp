@@ -148,7 +148,10 @@ end
 
 function HypeXLib:CreateServerPanel()
     local section = Sections["ServerPanel"]
-    if not section then warn("❌ Seção não existe.") return end
+    if not section then
+        warn("❌ Seção Painel Server não encontrada.")
+        return
+    end
 
     -- Cria cache se não existir
     if not self.ServerPanelPlayers then
@@ -199,14 +202,11 @@ function HypeXLib:CreateServerPanel()
                 end
             end)
 
-            local divider = section:NewDivider()
-
-            -- Armazena os objetos pra limpar depois
+            -- Salva pra limpeza futura
             table.insert(self.ServerPanelPlayers, lbl)
             table.insert(self.ServerPanelPlayers, btn1)
             table.insert(self.ServerPanelPlayers, btn2)
             table.insert(self.ServerPanelPlayers, btn3)
-            table.insert(self.ServerPanelPlayers, divider)
         end
     end
 end
