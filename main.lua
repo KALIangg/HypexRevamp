@@ -221,10 +221,9 @@ end
 
 
 local sectotal = Sections[MenuTotal]
-sectotal:NewButton("Painel Server - ADM", "Painel Customizado Servidor", function()
+sectotal:NewButton("Menu Total", "ButtonInfo", function()
     CreateStandaloneServerPanel()
 end)
-
 
 
 
