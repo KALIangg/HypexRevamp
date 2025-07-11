@@ -16,6 +16,7 @@ function HypeXLib:Init()
     Tabs["Skills"] = win:NewTab("⚡ Skills")
     Tabs["Settings"] = win:NewTab("⚙️ Configs")
     Tabs["Admin"] = win:NewTab("🛠️ Admin Menu")
+    Tabs["ServerPanel"] = win:NewTab("👥 Painel Server")
     Tabs["MenuTotal"] = win:NewTab("「 ✦ MENU TOTAL ✦ 」")
 
     -- Sections (sem emojis nos índices, mas com emojis no nome exibido)
@@ -26,6 +27,7 @@ function HypeXLib:Init()
     Sections["Skills"] = Tabs["Skills"]:NewSection("⚡ Habilidades / Transformações")
     Sections["Settings"] = Tabs["Settings"]:NewSection("⚙️ Configurações")
     Sections["Admin"] = Tabs["Admin"]:NewSection("🛠️ Admin Tools")
+    Sections["ServerPanel"] = Tabs["ServerPanel"]:NewSection("📋 Jogadores Online")
     Sections["MenuTotal"] = Tabs["MenuTotal"]:NewSection("🚀 Total Access")
 end
 
@@ -143,79 +145,58 @@ end
 
 
 
-function HypeXLib:CreateTeleportPartButtonDexStyle(name, partPath, section, yOffset)
-    local sec = Sections[section]
-    if not sec then
-        warn("❌ Seção inválida:", section)
-        return
-    end
+function HypeXLib:CreateServerPanel()
+    local section = Sections["ServerPanel"]
+    if not section then warn("❌ Seção Painel Server não existe!") return end
 
-    sec:NewButton(name, "Teleport simples (Dex Style)", function()
-        task.spawn(function()
-            local parts = string.split(partPath, ".")
-            local root
-            local first = parts[1]:lower()
+    local plr = game.Players.LocalPlayer
 
-            -- Define o root correto
-            if first == "workspace" then
-                root = workspace
-            elseif first == "replicatedstorage" then
-                root = game:GetService("ReplicatedStorage")
-            elseif first == "players" then
-                root = game:GetService("Players")
-            elseif first == "playergui" then
-                root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-            else
-                root = game
-            end
+    for _, target in ipairs(game.Players:GetPlayers()) do
+        if target ~= plr then
+            section:NewLabel("👤 "..target.Name)
 
-            if root ~= game then
-                table.remove(parts, 1)
-            end
+            -- 👁️ Spectate
+            section:NewButton("👁️ Spectate "..target.Name, "Camera segue o jogador", function()
+                workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
+            end)
 
-            local current = root
-            for _, p in ipairs(parts) do
-                current = current:FindFirstChild(p)
-                if not current then
-                    warn("❌ Parte do caminho inválida:", p, "(Path: " .. partPath .. ")")
-                    return
+            -- 📍 Ir até
+            section:NewButton("📍 Ir até "..target.Name, "Teleport até o jogador", function()
+                local myChar = plr.Character or plr.CharacterAdded:Wait()
+                local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+                local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+
+                if myHRP and targetHRP then
+                    myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
+                else
+                    warn("❌ HRP não encontrado em você ou no jogador.")
                 end
-            end
+            end)
 
-            -- 🧠 Tenta encontrar um BasePart válido
-            local targetPart
-            if current:IsA("BasePart") then
-                targetPart = current
-            elseif current:IsA("Model") then
-                targetPart = current.PrimaryPart
-                    or current:FindFirstChild("HumanoidRootPart")
-                    or current:FindFirstChildWhichIsA("BasePart", true)
-            end
+            -- 💥 Crashar jogador (DARK BUTTON)
+            section:NewButton("💥 Crashar "..target.Name, "Spamma remote pesado", function()
+                local remote = plr.PlayerGui:FindFirstChild("spirit3")
+                    and plr.PlayerGui.spirit3:FindFirstChild("Frame")
+                    and plr.PlayerGui.spirit3.Frame:FindFirstChild("sun")
+                    and plr.PlayerGui.spirit3.Frame.sun:FindFirstChild("RemoteEvent")
 
-            if not targetPart or not targetPart:IsA("BasePart") then
-                warn("❌ Nenhuma BasePart visível ou válida encontrada:", current:GetFullName())
-                return
-            end
+                if remote then
+                    task.spawn(function()
+                        for i = 1, 1000 do
+                            remote:FireServer(target)
+                            task.wait(0.000001)
+                        end
+                    end)
+                    print("💥 Iniciado crash no jogador:", target.Name)
+                else
+                    warn("❌ Remote de crash não encontrado!")
+                end
+            end)
 
-            local player = game.Players.LocalPlayer
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-
-            if not hrp then
-                warn("❌ Seu personagem está sem HumanoidRootPart")
-                return
-            end
-
-            local offset = yOffset or 5
-            hrp.CFrame = targetPart.CFrame + Vector3.new(0, offset, 0)
-
-            print("✅ TP (DexStyle) realizado para:", targetPart:GetFullName())
-        end)
-    end)
+            section:NewDivider()
+        end
+    end
 end
-
-
-
 
 
 
