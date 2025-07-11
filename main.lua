@@ -27,7 +27,8 @@ function HypeXLib:Init()
     Sections["Skills"] = Tabs["Skills"]:NewSection("⚡ Habilidades / Transformações")
     Sections["Settings"] = Tabs["Settings"]:NewSection("⚙️ Configurações")
     Sections["Admin"] = Tabs["Admin"]:NewSection("🛠️ Admin Tools")
-    Sections["ServerPanel"] = Tabs["ServerPanel"]:NewSection("📋 Jogadores Online")
+    Sections["ServerPanelMain"] = Tabs["ServerPanel"]:NewSection("🔧 Controles Fixos")
+    Sections["ServerPanelList"] = Tabs["ServerPanel"]:NewSection("📋 Jogadores Online")
     Sections["MenuTotal"] = Tabs["MenuTotal"]:NewSection("🚀 Total Access")
 end
 
@@ -146,39 +147,38 @@ end
 
 
 function HypeXLib:CreateServerPanel()
-    local section = Sections["ServerPanel"]
-    if not section then warn("❌ Seção Painel Server não existe!") return end
+    local sec = Sections["ServerPanelList"]
+    if not sec then warn("❌ Seção de painel de players não existe.") return end
 
-    -- LIMPA A SEÇÃO PRA EVITAR DUPLICAÇÃO
-    for _, v in ipairs(section.Container:GetChildren()) do
-        if v:IsA("TextButton") or v:IsA("TextLabel") or v:IsA("Frame") then
-            v:Destroy()
+    -- Primeiro limpa SOMENTE os jogadores antigos
+    if self.ServerPanelPlayers then
+        for _, ui in pairs(self.ServerPanelPlayers) do
+            if ui.Destroy then pcall(function() ui:Destroy() end) end
         end
     end
+    self.ServerPanelPlayers = {}
 
     local plr = game.Players.LocalPlayer
 
     for _, target in ipairs(game.Players:GetPlayers()) do
         if target ~= plr then
-            section:NewLabel("👤 "..target.Name)
+            -- Labels e botões individuais
+            local lbl = sec:NewLabel("👤 "..target.Name)
 
-            section:NewButton("👁️ Spectate "..target.Name, "Camera segue o jogador", function()
+            local btn1 = sec:NewButton("👁️ Spectate "..target.Name, "", function()
                 workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
             end)
 
-            section:NewButton("📍 Ir até "..target.Name, "Teleport até o jogador", function()
-                local myChar = plr.Character or plr.CharacterAdded:Wait()
-                local myHRP = myChar:FindFirstChild("HumanoidRootPart")
-                local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-
-                if myHRP and targetHRP then
-                    myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
-                else
-                    warn("❌ HRP não encontrado.")
+            local btn2 = sec:NewButton("📍 Ir até "..target.Name, "", function()
+                local char = plr.Character or plr.CharacterAdded:Wait()
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                local thrp = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                if hrp and thrp then
+                    hrp.CFrame = thrp.CFrame + Vector3.new(3, 0, 3)
                 end
             end)
 
-            section:NewButton("💥 Crashar "..target.Name, "Spamma o Remote pesado", function()
+            local btn3 = sec:NewButton("💥 Crashar "..target.Name, "", function()
                 local remote = plr.PlayerGui:FindFirstChild("spirit3")
                     and plr.PlayerGui.spirit3:FindFirstChild("Frame")
                     and plr.PlayerGui.spirit3.Frame:FindFirstChild("sun")
@@ -186,21 +186,26 @@ function HypeXLib:CreateServerPanel()
 
                 if remote then
                     task.spawn(function()
-                        for i = 1, 500 do
+                        for i = 1, 300 do
                             remote:FireServer()
                             task.wait(0.01)
                         end
                     end)
-                    print("💥 Crash loop iniciado em:", target.Name)
-                else
-                    warn("❌ Remote de crash não encontrado.")
                 end
             end)
 
-            section:NewDivider()
+            local divider = sec:NewDivider()
+
+            -- Salva todos os componentes pra limpar depois
+            table.insert(self.ServerPanelPlayers, lbl)
+            table.insert(self.ServerPanelPlayers, btn1)
+            table.insert(self.ServerPanelPlayers, btn2)
+            table.insert(self.ServerPanelPlayers, btn3)
+            table.insert(self.ServerPanelPlayers, divider)
         end
     end
 end
+
 
 
 
