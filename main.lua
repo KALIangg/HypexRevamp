@@ -145,61 +145,75 @@ end
 
 function HypeXLib:CreateTeleportPartButtonDexStyle(name, partPath, section, yOffset)
     local sec = Sections[section]
-    if not sec then warn("❌ Seção inválida:", section) return end
+    if not sec then
+        warn("❌ Seção inválida:", section)
+        return
+    end
 
-    sec:NewButton(name, "TP direto (estilo DEX)", function()
-        local parts = string.split(partPath, ".")
-        local root
+    sec:NewButton(name, "Teleport simples (Dex Style)", function()
+        task.spawn(function()
+            local parts = string.split(partPath, ".")
+            local root
+            local first = parts[1]:lower()
 
-        local first = parts[1]:lower()
-        if first == "workspace" then
-            root = workspace
-        elseif first == "replicatedstorage" then
-            root = game:GetService("ReplicatedStorage")
-        elseif first == "players" then
-            root = game:GetService("Players")
-        elseif first == "playergui" then
-            root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-        else
-            root = game
-        end
+            -- Define o root correto
+            if first == "workspace" then
+                root = workspace
+            elseif first == "replicatedstorage" then
+                root = game:GetService("ReplicatedStorage")
+            elseif first == "players" then
+                root = game:GetService("Players")
+            elseif first == "playergui" then
+                root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+            else
+                root = game
+            end
 
-        if root ~= game then
-            table.remove(parts, 1)
-        end
+            if root ~= game then
+                table.remove(parts, 1)
+            end
 
-        local current = root
-        for _, p in ipairs(parts) do
-            current = current:FindFirstChild(p)
-            if not current then
-                warn("❌ Parte do caminho inválida:", p, "(Path: " .. partPath .. ")")
+            local current = root
+            for _, p in ipairs(parts) do
+                current = current:FindFirstChild(p)
+                if not current then
+                    warn("❌ Parte do caminho inválida:", p, "(Path: " .. partPath .. ")")
+                    return
+                end
+            end
+
+            -- 🧠 Tenta encontrar um BasePart válido
+            local targetPart
+            if current:IsA("BasePart") then
+                targetPart = current
+            elseif current:IsA("Model") then
+                targetPart = current.PrimaryPart
+                    or current:FindFirstChild("HumanoidRootPart")
+                    or current:FindFirstChildWhichIsA("BasePart", true)
+            end
+
+            if not targetPart or not targetPart:IsA("BasePart") then
+                warn("❌ Nenhuma BasePart visível ou válida encontrada:", current:GetFullName())
                 return
             end
-        end
 
-        local finalPart = nil
-        if current:IsA("BasePart") then
-            finalPart = current
-        elseif current:IsA("Model") then
-            finalPart = current.PrimaryPart
-                or current:FindFirstChild("HumanoidRootPart")
-                or current:FindFirstChildWhichIsA("BasePart", true)
-        end
+            local player = game.Players.LocalPlayer
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hrp = char:FindFirstChild("HumanoidRootPart")
 
-        if not finalPart then
-            warn("❌ Nenhuma BasePart visível ou disponível no objeto:", current:GetFullName())
-            return
-        end
+            if not hrp then
+                warn("❌ Seu personagem está sem HumanoidRootPart")
+                return
+            end
 
-        local plr = game.Players.LocalPlayer
-        local char = plr.Character or plr.CharacterAdded:Wait()
-        local hrp = char:WaitForChild("HumanoidRootPart")
+            local offset = yOffset or 5
+            hrp.CFrame = targetPart.CFrame + Vector3.new(0, offset, 0)
 
-        local offset = yOffset or 5
-        hrp.CFrame = finalPart.CFrame + Vector3.new(0, offset, 0)
-        print("✅ [DEX MODE] TP para:", finalPart:GetFullName())
+            print("✅ TP (DexStyle) realizado para:", targetPart:GetFullName())
+        end)
     end)
 end
+
 
 
 
