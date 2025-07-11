@@ -143,82 +143,64 @@ end
 
 
 
-function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
+function HypeXLib:CreateTeleportPartButtonDexStyle(name, partPath, section, yOffset)
     local sec = Sections[section]
     if not sec then warn("❌ Seção inválida:", section) return end
 
-    sec:NewButton(name, "Teleport com stream forçado (Final)", function()
-        task.spawn(function()
-            local parts = string.split(partPath, ".")
-            local root
-            local first = parts[1]:lower()
+    sec:NewButton(name, "TP direto (estilo DEX)", function()
+        local parts = string.split(partPath, ".")
+        local root
 
-            -- Detecta raiz
-            if first == "workspace" then
-                root = workspace
-            elseif first == "replicatedstorage" then
-                root = game:GetService("ReplicatedStorage")
-            elseif first == "players" then
-                root = game:GetService("Players")
-            elseif first == "playergui" then
-                root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-            else
-                root = game
-            end
+        local first = parts[1]:lower()
+        if first == "workspace" then
+            root = workspace
+        elseif first == "replicatedstorage" then
+            root = game:GetService("ReplicatedStorage")
+        elseif first == "players" then
+            root = game:GetService("Players")
+        elseif first == "playergui" then
+            root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        else
+            root = game
+        end
 
-            if root ~= game then
-                table.remove(parts, 1)
-            end
+        if root ~= game then
+            table.remove(parts, 1)
+        end
 
-            local current = root
-            for _, p in ipairs(parts) do
-                current = current:FindFirstChild(p)
-                if not current then
-                    warn("❌ Caminho inválido:", p, "(Path: " .. partPath .. ")")
-                    return
-                end
-            end
-
-            local player = game.Players.LocalPlayer
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            local offset = yOffset or 5
-
-            local tempPos
-            if current:IsA("BasePart") then
-                tempPos = current.Position
-            elseif current:IsA("Model") then
-                tempPos = current:GetBoundingBox()
-            else
-                warn("❌ Objeto final não é válido:", current:GetFullName())
+        local current = root
+        for _, p in ipairs(parts) do
+            current = current:FindFirstChild(p)
+            if not current then
+                warn("❌ Parte do caminho inválida:", p, "(Path: " .. partPath .. ")")
                 return
             end
+        end
 
-            -- TELEPORTA PRA PERTO PRA FORÇAR STREAMING
-            hrp.CFrame = CFrame.new(tempPos.Position + Vector3.new(0, 50, 0))
-            task.wait(1)
+        local finalPart = nil
+        if current:IsA("BasePart") then
+            finalPart = current
+        elseif current:IsA("Model") then
+            finalPart = current.PrimaryPart
+                or current:FindFirstChild("HumanoidRootPart")
+                or current:FindFirstChildWhichIsA("BasePart", true)
+        end
 
-            -- 🔁 AGORA VAMOS TENTAR ACHAR O PART DE VERDADE
-            local targetPart
-            for i = 1, 60 do
-                targetPart = current.PrimaryPart
-                    or current:FindFirstChild("HumanoidRootPart")
-                    or current:FindFirstChildWhichIsA("BasePart", true)
+        if not finalPart then
+            warn("❌ Nenhuma BasePart visível ou disponível no objeto:", current:GetFullName())
+            return
+        end
 
-                if targetPart then break end
-                task.wait(0.25)
-            end
+        local plr = game.Players.LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
 
-            if not targetPart then
-                warn("❌ Nenhuma BasePart apareceu no model mesmo após mover.")
-                return
-            end
-
-            hrp.CFrame = targetPart.CFrame + Vector3.new(0, offset, 0)
-            print("✅ Teleportado com sucesso pra:", targetPart:GetFullName())
-        end)
+        local offset = yOffset or 5
+        hrp.CFrame = finalPart.CFrame + Vector3.new(0, offset, 0)
+        print("✅ [DEX MODE] TP para:", finalPart:GetFullName())
     end)
 end
+
 
 
 
