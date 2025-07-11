@@ -143,19 +143,26 @@ end
 
 
 function HypeXLib:CreateStandaloneServerPanel()
-    -- Cria nova janela separada
     local window = Library.CreateLib("📡 Painel Server (HypeX)", "DarkTheme")
-    local panelTab = window:NewTab("Jogadores Online")
-    local section = panelTab:NewSection("📋 Players")
+    local tab = window:NewTab("Jogadores Online")
+    local section = tab:NewSection("📋 Lista de Players")
 
     local plr = game.Players.LocalPlayer
+    local crashLoops = {}
 
-    local function populate()
-        -- limpa se já tiver
+    local function getFollowablePart(char)
+        return char:FindFirstChild("Humanoid") 
+            or char:FindFirstChild("UpperTorso") 
+            or char:FindFirstChild("Torso") 
+            or char:FindFirstChild("Head")
+    end
+
+    local function refresh()
+        -- Limpa antes
         if self.ServerPanelPlayers then
-            for _, v in pairs(self.ServerPanelPlayers) do
-                if typeof(v) == "table" and v.Destroy then
-                    pcall(function() v:Destroy() end)
+            for _, ui in pairs(self.ServerPanelPlayers) do
+                if typeof(ui) == "table" and ui.Destroy then
+                    pcall(function() ui:Destroy() end)
                 end
             end
         end
@@ -163,22 +170,35 @@ function HypeXLib:CreateStandaloneServerPanel()
 
         for _, target in ipairs(game.Players:GetPlayers()) do
             if target ~= plr then
-                local lbl = section:NewLabel("👤 "..target.Name)
+                local label = section:NewLabel("👤 "..target.Name)
 
+                -- 👁️ Spectate
                 local spectateBtn = section:NewButton("👁️ Spectate "..target.Name, "", function()
-                    workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
+                    local char = target.Character
+                    local cam = workspace.CurrentCamera
+                    local subject = char and getFollowablePart(char)
+                    if subject then
+                        cam.CameraSubject = subject
+                        print("✅ Espectando:", subject:GetFullName())
+                    else
+                        warn("❌ Nenhum ponto de espectar em", target.Name)
+                    end
                 end)
 
+                -- 📍 Teleport
                 local tpBtn = section:NewButton("📍 Ir até "..target.Name, "", function()
                     local myChar = plr.Character or plr.CharacterAdded:Wait()
                     local myHRP = myChar:FindFirstChild("HumanoidRootPart")
                     local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
-
                     if myHRP and targetHRP then
-                        myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
+                        myHRP.CFrame = targetHRP.CFrame + Vector3.new(2, 0, 2)
+                        print("✅ TP para:", target.Name)
+                    else
+                        warn("❌ TP falhou - HRP ausente")
                     end
                 end)
 
+                -- 💥 Crashar + looptp até player
                 local crashBtn = section:NewButton("💥 Crashar "..target.Name, "", function()
                     local remote = plr.PlayerGui:FindFirstChild("spirit3")
                         and plr.PlayerGui.spirit3:FindFirstChild("Frame")
@@ -186,17 +206,29 @@ function HypeXLib:CreateStandaloneServerPanel()
                         and plr.PlayerGui.spirit3.Frame.sun:FindFirstChild("RemoteEvent")
 
                     if remote then
+                        crashLoops[target.Name] = true
                         task.spawn(function()
+                            local myChar = plr.Character or plr.CharacterAdded:Wait()
+                            local myHRP = myChar:WaitForChild("HumanoidRootPart")
                             for i = 1, 300 do
+                                if not crashLoops[target.Name] then break end
+                                local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
+                                if myHRP and targetHRP then
+                                    myHRP.CFrame = targetHRP.CFrame + Vector3.new(math.random(-1,1), 0, math.random(-1,1))
+                                end
                                 remote:FireServer()
                                 task.wait(0.01)
                             end
+                            crashLoops[target.Name] = false
+                            print("✅ Crash finalizado:", target.Name)
                         end)
+                    else
+                        warn("❌ Remote de crash não localizado.")
                     end
                 end)
 
-                -- Salva pra limpar
-                table.insert(self.ServerPanelPlayers, lbl)
+                -- Salva pra limpar depois
+                table.insert(self.ServerPanelPlayers, label)
                 table.insert(self.ServerPanelPlayers, spectateBtn)
                 table.insert(self.ServerPanelPlayers, tpBtn)
                 table.insert(self.ServerPanelPlayers, crashBtn)
@@ -204,19 +236,20 @@ function HypeXLib:CreateStandaloneServerPanel()
         end
     end
 
-    populate()
-
-    -- Atualização automática
+    -- Auto atualizar
     game.Players.PlayerAdded:Connect(function()
         task.wait(0.3)
-        populate()
+        refresh()
     end)
 
     game.Players.PlayerRemoving:Connect(function()
         task.wait(0.3)
-        populate()
+        refresh()
     end)
+
+    refresh()
 end
+
 
 
 
