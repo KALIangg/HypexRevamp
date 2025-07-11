@@ -149,18 +149,23 @@ function HypeXLib:CreateServerPanel()
     local section = Sections["ServerPanel"]
     if not section then warn("❌ Seção Painel Server não existe!") return end
 
+    -- LIMPA A SEÇÃO PRA EVITAR DUPLICAÇÃO
+    for _, v in ipairs(section.Container:GetChildren()) do
+        if v:IsA("TextButton") or v:IsA("TextLabel") or v:IsA("Frame") then
+            v:Destroy()
+        end
+    end
+
     local plr = game.Players.LocalPlayer
 
     for _, target in ipairs(game.Players:GetPlayers()) do
         if target ~= plr then
             section:NewLabel("👤 "..target.Name)
 
-            -- 👁️ Spectate
             section:NewButton("👁️ Spectate "..target.Name, "Camera segue o jogador", function()
                 workspace.CurrentCamera.CameraSubject = target.Character and target.Character:FindFirstChildWhichIsA("Humanoid") or target.Character
             end)
 
-            -- 📍 Ir até
             section:NewButton("📍 Ir até "..target.Name, "Teleport até o jogador", function()
                 local myChar = plr.Character or plr.CharacterAdded:Wait()
                 local myHRP = myChar:FindFirstChild("HumanoidRootPart")
@@ -169,12 +174,11 @@ function HypeXLib:CreateServerPanel()
                 if myHRP and targetHRP then
                     myHRP.CFrame = targetHRP.CFrame + Vector3.new(3, 0, 3)
                 else
-                    warn("❌ HRP não encontrado em você ou no jogador.")
+                    warn("❌ HRP não encontrado.")
                 end
             end)
 
-            -- 💥 Crashar jogador (DARK BUTTON)
-            section:NewButton("💥 Crashar "..target.Name, "Spamma remote pesado", function()
+            section:NewButton("💥 Crashar "..target.Name, "Spamma o Remote pesado", function()
                 local remote = plr.PlayerGui:FindFirstChild("spirit3")
                     and plr.PlayerGui.spirit3:FindFirstChild("Frame")
                     and plr.PlayerGui.spirit3.Frame:FindFirstChild("sun")
@@ -182,14 +186,14 @@ function HypeXLib:CreateServerPanel()
 
                 if remote then
                     task.spawn(function()
-                        for i = 1, 1000 do
-                            remote:FireServer(target)
-                            task.wait(0.000001)
+                        for i = 1, 500 do
+                            remote:FireServer()
+                            task.wait(0.01)
                         end
                     end)
-                    print("💥 Iniciado crash no jogador:", target.Name)
+                    print("💥 Crash loop iniciado em:", target.Name)
                 else
-                    warn("❌ Remote de crash não encontrado!")
+                    warn("❌ Remote de crash não encontrado.")
                 end
             end)
 
@@ -197,6 +201,7 @@ function HypeXLib:CreateServerPanel()
         end
     end
 end
+
 
 
 
