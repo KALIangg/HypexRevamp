@@ -150,12 +150,12 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
         return
     end
 
-    sec:NewButton(name, "Teleporta até a Part ou Model", function()
+    sec:NewButton(name, "Teleporta até a Part ou Model (REAL DEX MODE)", function()
         task.spawn(function()
             local parts = string.split(partPath, ".")
             local root
 
-            -- 🧠 Lida com paths padrão
+            -- 🔍 Detecta caminho raiz
             local first = parts[1]:lower()
             if first == "workspace" then
                 root = workspace
@@ -177,6 +177,7 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
                 table.remove(parts, 1)
             end
 
+            -- Caminho até o objeto final
             local current = root
             for _, p in ipairs(parts) do
                 current = current:FindFirstChild(p)
@@ -186,28 +187,31 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
                 end
             end
 
-            local targetPos
-            if current:IsA("BasePart") then
-                targetPos = current.CFrame
-            elseif current:IsA("Model") then
-                -- 🔍 Tenta pegar PrimaryPart, se não tiver, usa primeira BasePart
-                local targetPart = current.PrimaryPart
-                    or current:FindFirstChild("HumanoidRootPart")
-                    or current:FindFirstChildWhichIsA("BasePart")
+            local targetCFrame
 
-                if not targetPart then
-                    warn("❌ Model não tem nenhuma part válida:", current:GetFullName())
+            if current:IsA("BasePart") then
+                targetCFrame = current.CFrame
+
+            elseif current:IsA("Model") then
+                -- 🔍 Busca PrimaryPart ou HumanoidRootPart ou primeira BasePart
+                local base = current.PrimaryPart
+                    or current:FindFirstChild("HumanoidRootPart")
+                    or current:FindFirstChildWhichIsA("BasePart", true) -- busca profundo
+
+                if not base then
+                    warn("❌ Model não contém nenhuma BasePart:", current:GetFullName())
                     return
                 end
 
-                targetPos = targetPart.CFrame
+                targetCFrame = base.CFrame
+
             else
-                warn("❌ Objeto alvo não é nem Part nem Model:", current:GetFullName())
+                warn("❌ Objeto final não é uma Part nem Model:", current:GetFullName())
                 return
             end
 
-            -- 🔁 Força região carregar (se StreamingEnabled)
-            workspace.CurrentCamera.CFrame = targetPos
+            -- 🔁 Força região carregar se StreamingEnabled
+            workspace.CurrentCamera.CFrame = targetCFrame
             task.wait(0.3)
 
             local plr = game.Players.LocalPlayer
@@ -215,12 +219,13 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
             local hrp = char:WaitForChild("HumanoidRootPart")
 
             local offset = yOffset or 5
-            hrp.CFrame = targetPos + Vector3.new(0, offset, 0)
+            hrp.CFrame = targetCFrame + Vector3.new(0, offset, 0)
 
             print("✅ Teleportado com sucesso para:", current:GetFullName())
         end)
     end)
 end
+
 
 
 
