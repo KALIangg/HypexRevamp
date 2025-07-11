@@ -136,24 +136,27 @@ function HypeXLib:CreateTeleportPartButton(buttonName, partPath, section, yOffse
         local char = plr.Character or plr.CharacterAdded:Wait()
         local hrp = char:WaitForChild("HumanoidRootPart")
 
-        local pathParts = string.split(partPath, ".")
-        local part = game
+        local parts = string.split(partPath, ".")
+        local current = game
 
-        for _, p in ipairs(pathParts) do
-            part = part:FindFirstChild(p)
-            if not part then
-                warn("❌ Part não encontrada:", partPath)
+        for _, p in ipairs(parts) do
+            current = current:FindFirstChild(p)
+            if not current then
+                warn("❌ Parte do caminho inválida:", p, "(Path: " .. partPath .. ")")
                 return
             end
         end
 
-        if not part:IsA("BasePart") then
-            warn("❌ Objeto destino não é uma Part:", part:GetFullName())
+        if not current:IsA("BasePart") then
+            warn("❌ Objeto alvo não é uma Part:", current:GetFullName())
             return
         end
 
         local offset = yOffset or 5
-        hrp.CFrame = part.CFrame + Vector3.new(0, offset, 0)
+        local destinationCFrame = current.CFrame + Vector3.new(0, offset, 0)
+
+        hrp.CFrame = destinationCFrame
+        print("✅ Teleportado para:", current:GetFullName())
     end)
 end
 
