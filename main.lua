@@ -51,9 +51,17 @@ function HypeXLib:CreateToolButton(name, toolName, guiName, section)
 
     sec:NewButton(name, "Equipe Tool e ativa GUI", function()
         local rs = game:GetService("ReplicatedStorage")
-        local tool = nil
+        local plr = game.Players.LocalPlayer
 
-        -- 💡 Procura só entre TOOLS!
+        -- 🧹 LIMPA qualquer "DarkXQuake" que não for Tool do Backpack
+        for _, item in ipairs(plr.Backpack:GetChildren()) do
+            if item.Name == toolName and not item:IsA("Tool") then
+                item:Destroy()
+            end
+        end
+
+        -- ✅ Só pega TOOL de verdade do ReplicatedStorage
+        local tool = nil
         for _, item in ipairs(rs:GetChildren()) do
             if item:IsA("Tool") and item.Name == toolName then
                 tool = item
@@ -62,9 +70,16 @@ function HypeXLib:CreateToolButton(name, toolName, guiName, section)
         end
 
         if tool then
+            -- Já tem no backpack? Evita duplicação
+            if plr.Backpack:FindFirstChild(toolName) or plr.Character:FindFirstChild(toolName) then
+                warn("⚠️ Tool já está no inventário ou equipada:", toolName)
+                return
+            end
+
             local clone = tool:Clone()
             clone.Parent = plr.Backpack
 
+            -- Conecta GUI apenas se Tool mesmo
             clone.Equipped:Connect(function()
                 local gui = plr.PlayerGui:FindFirstChild(guiName)
                 if gui then gui.Enabled = true end
@@ -74,11 +89,14 @@ function HypeXLib:CreateToolButton(name, toolName, guiName, section)
                 local gui = plr.PlayerGui:FindFirstChild(guiName)
                 if gui then gui.Enabled = false end
             end)
+
+            print("✅ Tool clonada e equipada:", toolName)
         else
-            warn("❌ Tool '"..toolName.."' não encontrada em ReplicatedStorage (ou não é Tool)")
+            warn("❌ Tool '"..toolName.."' não encontrada")
         end
     end)
 end
+
 
 
 -- 🔥 RemoteEvent por seção
