@@ -151,36 +151,40 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
     end
 
     sec:NewButton(name, "Teleporta até a Part (modo DEX)", function()
-        local success, err = pcall(function()
+        task.spawn(function()
             local parts = string.split(partPath, ".")
             local current = game
             for _, p in ipairs(parts) do
                 current = current:FindFirstChild(p)
                 if not current then
-                    error("❌ Parte do caminho inválida: " .. p)
+                    warn("❌ Caminho inválido:", partPath)
+                    return
                 end
             end
 
             if not current:IsA("BasePart") then
-                error("❌ Objeto final não é uma Part: " .. tostring(current))
+                warn("❌ Objeto alvo não é uma BasePart:", current:GetFullName())
+                return
             end
 
-            local player = game.Players.LocalPlayer
-            local char = player.Character or player.CharacterAdded:Wait()
+            -- 🔄 Esperar o Character
+            local plr = game.Players.LocalPlayer
+            local char = plr.Character or plr.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
 
+            -- 🔁 Força o render carregando a Part, se necessário
+            repeat
+                task.wait()
+            until current:IsDescendantOf(workspace) and current:IsDescendantOf(game)
+
+            -- ✅ Finalmente teleporta
             local offset = yOffset or 5
-            local finalCFrame = current.CFrame + Vector3.new(0, offset, 0)
-
-            hrp.CFrame = finalCFrame
-            print("✅ Teleportado com sucesso para:", current:GetFullName())
+            hrp.CFrame = current.CFrame + Vector3.new(0, offset, 0)
+            print("✅ Teleportado para:", current:GetFullName())
         end)
-
-        if not success then
-            warn("🚫 ERRO AO TELEPORTAR:", err)
-        end
     end)
 end
+
 
 
 
