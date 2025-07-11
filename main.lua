@@ -153,37 +153,62 @@ function HypeXLib:CreateTeleportPartButton(name, partPath, section, yOffset)
     sec:NewButton(name, "Teleporta até a Part (modo DEX)", function()
         task.spawn(function()
             local parts = string.split(partPath, ".")
-            local current = game
+            local root
+
+            -- 🔍 Trata caminho especial inicial
+            local first = parts[1]:lower()
+            if first == "workspace" then
+                root = workspace
+            elseif first == "replicatedstorage" then
+                root = game:GetService("ReplicatedStorage")
+            elseif first == "players" then
+                root = game:GetService("Players")
+            elseif first == "lighting" then
+                root = game:GetService("Lighting")
+            elseif first == "startergui" then
+                root = game:GetService("StarterGui")
+            elseif first == "playergui" then
+                root = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+            else
+                root = game
+            end
+
+            -- remove o primeiro se for propriedade
+            if first == "workspace" or first == "replicatedstorage" or first == "players" or first == "lighting" or first == "startergui" or first == "playergui" then
+                table.remove(parts, 1)
+            end
+
+            local current = root
             for _, p in ipairs(parts) do
                 current = current:FindFirstChild(p)
                 if not current then
-                    warn("❌ Caminho inválido:", partPath)
+                    warn("❌ Parte do caminho inválida:", p, "(Path: " .. partPath .. ")")
                     return
                 end
             end
 
             if not current:IsA("BasePart") then
-                warn("❌ Objeto alvo não é uma BasePart:", current:GetFullName())
+                warn("❌ Objeto final não é uma Part:", current:GetFullName())
                 return
             end
 
-            -- 🔄 Esperar o Character
+            -- 🔁 Força carregar via camera (streaming safe)
+            workspace.CurrentCamera.CFrame = current.CFrame
+            task.wait(0.3)
+
             local plr = game.Players.LocalPlayer
             local char = plr.Character or plr.CharacterAdded:Wait()
             local hrp = char:WaitForChild("HumanoidRootPart")
 
-            -- 🔁 Força o render carregando a Part, se necessário
-            repeat
-                task.wait()
-            until current:IsDescendantOf(workspace) and current:IsDescendantOf(game)
-
-            -- ✅ Finalmente teleporta
             local offset = yOffset or 5
-            hrp.CFrame = current.CFrame + Vector3.new(0, offset, 0)
+            local destination = current.CFrame + Vector3.new(0, offset, 0)
+
+            hrp.CFrame = destination
             print("✅ Teleportado para:", current:GetFullName())
         end)
     end)
 end
+
 
 
 
