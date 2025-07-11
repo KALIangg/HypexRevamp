@@ -6,7 +6,7 @@ local plr = game.Players.LocalPlayer
 
 -- 🔥 Inicia e cria Tabs padrão
 function HypeXLib:Init()
-    local win = Library.CreateLib("HypeX Revamp", "DarkTheme")
+    local win = Library.CreateLib("HypeX Remake", "DarkTheme")
 
     -- Tabs (sem emojis nos índices)
     Tabs["Main"] = win:NewTab("Main")
