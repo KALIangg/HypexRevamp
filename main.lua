@@ -16,7 +16,6 @@ function HypeXLib:Init()
     Tabs["Skills"] = win:NewTab("⚡ Skills")
     Tabs["Settings"] = win:NewTab("⚙️ Configs")
     Tabs["Admin"] = win:NewTab("🛠️ Admin Menu")
-    Tabs["ServerPanel"] = win:NewTab("👥 Painel Server")
     Tabs["MenuTotal"] = win:NewTab("「 ✦ MENU TOTAL ✦ 」")
 
     -- Sections (sem emojis nos índices, mas com emojis no nome exibido)
@@ -27,8 +26,6 @@ function HypeXLib:Init()
     Sections["Skills"] = Tabs["Skills"]:NewSection("⚡ Habilidades / Transformações")
     Sections["Settings"] = Tabs["Settings"]:NewSection("⚙️ Configurações")
     Sections["Admin"] = Tabs["Admin"]:NewSection("🛠️ Admin Tools")
-    Sections["ServerPanelMain"] = Tabs["ServerPanel"]:NewSection("🔧 Controles Fixos")
-    Sections["ServerPanelList"] = Tabs["ServerPanel"]:NewSection("📋 Jogadores Online")
     Sections["MenuTotal"] = Tabs["MenuTotal"]:NewSection("🚀 Total Access")
 end
 
