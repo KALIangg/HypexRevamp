@@ -221,13 +221,6 @@ end
 
 
 
-MenuTotal:NewButton("Menu Total", "ButtonInfo", function()
-    CreateStandaloneServerPanel()
-end)
-
-
-
-
 
 
 
