@@ -1,6 +1,5 @@
 -- =========================
 -- 📚 HypeX Universal Library
--- Inspirado no estilo informant.wtf
 -- =========================
 
 local Kavo = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
@@ -52,6 +51,20 @@ function HypeXLib:CreateToggle(name, section, callback, desc)
     local sec = getSection(self, section)
     if not sec then return end
     sec:NewToggle(name, desc or "Toggle", function(state)
+        callback(state)
+    end)
+end
+
+function HypeXLib:CreateCustomButton(name, section, callback)
+    local sec = getSection(self, section)
+    if not sec then return end
+    sec:NewButton(name, "Botão customizado", callback)
+end
+
+function HypeXLib:CreateCustomToggle(name, section, callback)
+    local sec = getSection(self, section)
+    if not sec then return end
+    sec:NewToggle(name, "Toggle customizado", function(state)
         callback(state)
     end)
 end
